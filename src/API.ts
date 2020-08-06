@@ -1,0 +1,39 @@
+import { shuffleArray } from './utils';
+
+export type Question = {
+    category: string;
+    correct_answer: string;
+    difficulty: string;
+    incorrect_answers: string[];
+    question: string;
+    type: string;
+}
+
+export type QuestionState = Question & { answers: string[] };
+
+export enum Difficulty {
+    EASY ='easy',
+    MEDIUM = 'medium',
+    HARD = 'hard',
+}
+
+export const fetchQuizQuestions = async (amount: number, difficulty: Difficulty) => {
+    const endpoint = `https://opentdb.com/api.php?amount=${amount}&difficulty=${difficulty}&type=multiple`;
+    //we use double awaits because
+    //first we await the fetch itself and
+    //second we await when we convert it to JSON
+    const data = await (await fetch(endpoint)).json();
+    
+    //question: Question specifies the props as the Question above
+    //=>({}) below means we get an implicit return which is an object
+
+    return data.results.map((question: Question) => (
+        {
+            ...question,
+            answers: shuffleArray([
+                ...question.incorrect_answers, 
+                question.correct_answer,
+            ])
+        }
+    ))
+};
